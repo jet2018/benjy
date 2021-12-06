@@ -14,31 +14,88 @@
 
 
 <section id="stats">
+    <h1 class="p-3 text-info">Statics</h1>
     <table class="table table-striped">
         <thead>
             <td>Username</td>
             <td>Full name</td>
-            <td>Facebook</td>
-            <td>Whatsapp</td>
-            <td>Instagram</td>
-            <td>Twitter</td>
-            <td>Reddit</td>
-            <td>Snapchat</td>
+            <td class="text-primary"><i class="fab fa-facebook"></i> Facebook</td>
+            <td class="text-success"><i class="fab fa-whatsapp"></i> Whatsapp</td>
+            <td class="text-danger"><i class="fab fa-instagram"></i> Instagram</td>
+            <td class="text-info"><i class="fab fa-twitter"></i> Twitter</td>
+            <td><i class="fab fa-reddit text-danger"></i> Reddit</td>
+            <td class="text-warning"><i class="fab fa-snapchat"></i> Snapchat</td>
         </thead>
         <tbody>
             {% for std in Students %}
             <tr>
                 <td>{{ std.username }}</td>
                 <td>{{ std.name|capfirst }}</td>
-                <td>{{ std.fb }}</td>
-                <td>{{ std.wp }}</td>
-                <td>{{ std.inst }}</td>
-                <td>{{ std.tw }}</td>
-                <td>{{ std.reddit }}</td>
-                <td>{{ std.sn }}</td>
+                <td class="text-primary">{{ std.fb }}</td>
+                <td class="text-success">{{ std.wp }}</td>
+                <td class="text-danger">{{ std.inst }}</td>
+                <td class="text-info">{{ std.tw }}</td>
+                <td class="text-default">{{ std.reddit }}</td>
+                <td class="text-warning">{{ std.sn }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </section>
-{% endblock content %}
+<section id="stats">
+    <h1 class="p-3 text-info">Visualizations</h1>
+    <!-- pie chart -->
+    <div class="row">
+        <div class="col" id="myPieChart"></div>
+        <div class="col" id="myBarChart"></div>
+    </div>
+</section>
+<!-- <head>
+    
+    
+</head>
+<body>
+    <div id="myPieChart" style="width: 900px; height: 500px;"></div>
+-->
+{% endblock content %} {% block scripts %}
+<script>
+    google.charts.load('current', {
+        packages: ['corechart']
+    });
+    google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart() {
+        // Define the chart to be drawn.
+        $.ajax({
+            url: '/users/json',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                    let res = response[0]
+                    var data = new google.visualization.DataTable();
+                    data.addColumn('string', 'Topping');
+                    data.addColumn('number', 'Slices');
+                    console.log(res[''])
+                    data.addRows([
+                        ['Whatsapp', Number(res.whatsapp)],
+                        ['Facebook', Number(res.facebook)],
+                        ['Instagram', Number(res.instagram)],
+                        ['Twitter', Number(res.twitter)],
+                        ['Reddit', Number(res.reddit)],
+                        ['Snapchat', Number(res.snapchat)],
+                    ]);
+                    var options = {
+                        title: 'General Application usages',
+                        width: 500,
+                        height: 500,
+                    };
+                    // Instantiate and draw the chart.
+                    // Instantiate and draw the chart.
+                    var chart = new google.visualization.PieChart(document.getElementById('myPieChart'));
+                    var bar = new google.visualization.BarChart(document.getElementById('myBarChart'));
+                    chart.draw(data, options);
+                    bar.draw(data, options);
+                } // end success
+        }); // end ajax
+    } // end drawChart
+</script>{% endblock scripts %}
