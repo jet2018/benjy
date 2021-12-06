@@ -1,0 +1,44 @@
+{% extends "base.html" %} {% block content%}
+<div class="row text-dark mt-md-3">
+    <div class="p-3 ml-2 col border w-auto">
+        <h1 class="text-center">
+            {% if usages.0.device == "whatsapp" %} <i class="fab fa-whatsapp"></i> {% elif usages.0.device == "facebook" %} <i class="fab fa-facebook"></i> {% endif %} : {{usages.0.usage}}</h1>
+    </div>
+    <div class="p-3 col ml-1 border w-auto">
+        <h1 class="text-center"><i class="fas fa-users"></i>: {{Students|length}}</h1>
+    </div>
+    <div class="p-3 col mr-1 border w-auto">
+        <h1 class="text-center"><i class="fab fa-sketch"></i>: 06</h1>
+    </div>
+</div>
+
+
+<section id="stats">
+    <table class="table table-striped">
+        <thead>
+            <td>Username</td>
+            <td>Full name</td>
+            <td>Facebook</td>
+            <td>Whatsapp</td>
+            <td>Instagram</td>
+            <td>Twitter</td>
+            <td>Reddit</td>
+            <td>Snapchat</td>
+        </thead>
+        <tbody>
+            {% for std in Students %}
+            <tr>
+                <td>{{ std.username }}</td>
+                <td>{{ std.name|capfirst }}</td>
+                <td>{{ std.fb }}</td>
+                <td>{{ std.wp }}</td>
+                <td>{{ std.inst }}</td>
+                <td>{{ std.tw }}</td>
+                <td>{{ std.reddit }}</td>
+                <td>{{ std.sn }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock content %}

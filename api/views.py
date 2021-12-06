@@ -4,90 +4,73 @@ from api.serializers import UsageDataSerializer
 from rest_framework.decorators import api_view
 from rest_framework import generics
 from django.http.response import JsonResponse
+import requests
+from django.views.generic import TemplateView
 # Create your views here.
-
-from .models import UsageData
-
-
-class ViewAllStatistics(generics.ListAPIView):
-    queryset = UsageData.objects.all()
-    serializer_class = UsageDataSerializer
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 
-@api_view(['POST'])
-def PostData(request):
-    username = request.data.get(
-        'username')
-
-    facebook = request.data.get(
-        'facebook') if request.data.get('facebook') else 0
-    twitter = request.data.get(
-        'twitter') if request.data.get('twitter') else 0
-    snapchat = request.data.get(
-        'snapchat') if request.data.get('snapchat') else 0
-    instagram = request.data.get(
-        'instagram') if request.data.get('instagram') else 0
-    reddit = request.data.get('reddit') if request.data.get('reddit') else 0
-    whatsapp = request.data.get(
-        'whatsapp') if request.data.get('whatsapp') else 0
-
-    try:
-        # get the user
-        user = User.objects.get(username=username)
-        # create the usage data
-        usage_data = UsageData(
-            user=user,
-            facebook=facebook,
-            twitter=twitter,
-            snapchat=snapchat,
-            whatsapp=whatsapp,
-            instagram=instagram,
-            reddit=reddit
-        )
-        usage_data.save()
-        return JsonResponse({'status': 'success'})
-    except User.DoesNotExist:
-        return JsonResponse({'error': 'Not found'})
+# from .models import UsageData
 
 
-@api_view(['POST'])
-def fake_login(request):
-    username = request.data.get(
-        'username')
-    password = request.data.get(
-        'password')
+class HomePageView(LoginRequiredMixin, TemplateView):
+    login_url = '/login/'
+    template_name = 'home.html'
+    redirect_field_name = 'redirect_to'
 
-    user = auth.authencticate(username=username, password=password)
-    if user is not None:
-        auth.login(request, user)
-        return JsonResponse({'status': 'success'})
-    else:
-        return JsonResponse({'status': 'error'})
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        get_data = requests.get(
+            'https://devicemonitor-2e4ba-default-rtdb.firebaseio.com/users.json')
+        data = get_data.json()
+        eachUser = []
+        for a in data:
+            all_data = data[a]
+            fb = []
+            wp = []
+            tw = []
+            sn = []
+            inst = []
+            reddit = []
+            for b in all_data["usagedata"]:
+                if b["faceboook"]:
+                    fb.append(round(int(b["faceboook"])/60000))
+                if b["whatsapp"]:
+                    wp.append(round(int(b["whatsapp"])/60000))
+                if b["twitter"]:
+                    tw.append(round(int(b["twitter"])/60000))
+                if b["snapchat"]:
+                    sn.append(round(int(b["snapchat"])/60000))
+                if b["instagram"]:
+                    inst.append(round(int(b["instagram"])/60000))
+                if b['reddit']:
+                    reddit.append(round(int(b['reddit'])/60000))
 
+            # getting sums
+            fb_sum = sum(fb)
+            wp_sum = sum(wp)
+            tw_sum = sum(tw)
+            sn_sum = sum(sn)
+            inst_sum = sum(inst)
+            reddit_sum = sum(reddit)
+            usage = []
+            # getting the highest usage
+            if fb_sum > wp_sum and fb_sum > tw_sum and fb_sum > sn_sum and fb_sum > inst_sum and fb_sum > reddit_sum:
+                usage.append({"usage": fb_sum, "device": "facebook"})
+            elif wp_sum > fb_sum and wp_sum > tw_sum and wp_sum > sn_sum and wp_sum > inst_sum and wp_sum > reddit_sum:
+                usage.append({"usage": wp_sum, "device": "whatsapp"})
+            elif tw_sum > fb_sum and tw_sum > wp_sum and tw_sum > sn_sum and tw_sum > inst_sum and tw_sum > reddit_sum:
+                usage.append({"usage": tw_sum, "device": "twitter"})
+            elif sn_sum > fb_sum and sn_sum > wp_sum and sn_sum > tw_sum and sn_sum > inst_sum and sn_sum > reddit_sum:
+                usage.append({"usage": sn_sum, "device": "snapchat"})
+            elif inst_sum > fb_sum and inst_sum > wp_sum and inst_sum > tw_sum and inst_sum > sn_sum and inst_sum > reddit_sum:
+                usage.append({"usage": inst_sum, "device": "instagram"})
+            elif reddit_sum > fb_sum and reddit_sum > wp_sum and reddit_sum > tw_sum and reddit_sum > sn_sum and reddit_sum > inst_sum:
+                usage.append({"usage": reddit_sum, "device": "reddit"})
 
-@api_view(['POST'])
-def fake_logout(request):
-    auth.logout(request)
-    return JsonResponse({'status': 'success'})
+            eachUser.append(
+                {"name": all_data["fullname"], "username": all_data["username"], "fb": sum(fb), "wp": sum(wp), "tw": sum(tw), "reddit": sum(reddit), "inst": sum(inst), 'sn': sum(sn)})
 
-
-@api_view(['POST'])
-def fake_register(request):
-    username = request.data.get(
-        'username')
-    first_name = request.data.get(
-        'first_name')
-    last_name = request.data.get(
-        'last_name')
-    password = request.data.get(
-        'password')
-
-    user = User.objects.create_user(
-        first_name=first_name,
-        last_name=last_name,
-        username=username,
-        password=password,
-
-    )
-    user.save()
-    return JsonResponse({'status': 'success'})
+        context['usages'] = usage
+        context['Students'] = eachUser
+        return context
