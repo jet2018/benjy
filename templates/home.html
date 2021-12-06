@@ -12,6 +12,14 @@
     </div>
 </div>
 
+<section id="stats">
+    <h1 class="p-3 text-info">Visualizations</h1>
+    <!-- pie chart -->
+    <div class="row">
+        <div class="col" id="myPieChart"></div>
+        <div class="col" id="myBarChart"></div>
+    </div>
+</section>
 
 <section id="stats">
     <h1 class="p-3 text-info">Statics</h1>
@@ -37,19 +45,15 @@
                 <td class="text-info">{{ std.tw }}</td>
                 <td class="text-default">{{ std.reddit }}</td>
                 <td class="text-warning">{{ std.sn }}</td>
+                <td>
+                    <a type="button" class="btn btn-sm btn-dark text-light" href="{% url 'api:user' std.username %}">Details</a>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </section>
-<section id="stats">
-    <h1 class="p-3 text-info">Visualizations</h1>
-    <!-- pie chart -->
-    <div class="row">
-        <div class="col" id="myPieChart"></div>
-        <div class="col" id="myBarChart"></div>
-    </div>
-</section>
+
 <!-- <head>
     
     
@@ -86,8 +90,8 @@
                     ]);
                     var options = {
                         title: 'General Application usages',
-                        width: 500,
-                        height: 500,
+                        width: 600,
+                        height: 400,
                     };
                     // Instantiate and draw the chart.
                     // Instantiate and draw the chart.

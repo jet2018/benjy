@@ -113,3 +113,61 @@ def data_to_json(request):
     usage.append({"facebook": fb_sum, "whatsapp": wp_sum, "twitter": tw_sum,
                   "instagram": inst_sum, "reddit": reddit_sum, "snapchat": sn_sum})
     return JsonResponse(usage, safe=False)
+
+
+@api_view(['GET'])
+def data_to_json_by_user(request, username):
+    get_data = requests.get(
+        'https://devicemonitor-2e4ba-default-rtdb.firebaseio.com/users.json')
+    data = get_data.json()
+    user_data = data['{}'.format(username)]
+    fb = []
+    wp = []
+    tw = []
+    sn = []
+    inst = []
+    dat = []
+    reddit = []
+
+    for dt in user_data['usagedata']:
+        if dt['day']:
+            dat.append(int(dt['day']))
+        if dt['faceboook']:
+            fb.append(round(int(dt["faceboook"])/60000))
+        if dt['whatsapp']:
+            wp.append(round(int(dt["whatsapp"])/60000))
+        if dt['twitter']:
+            tw.append(round(int(dt["twitter"])/60000))
+        if dt['snapchat']:
+            sn.append(round(int(dt["snapchat"])/60000))
+        if dt['instagram']:
+            inst.append(round(int(dt["instagram"])/60000))
+        if dt['reddit']:
+            reddit.append(round(int(dt["reddit"])/60000))
+    fb_sum = sum(fb)
+    wp_sum = sum(wp)
+    tw_sum = sum(tw)
+    sn_sum = sum(sn)
+    inst_sum = sum(inst)
+    reddit_sum = sum(reddit)
+    usage = []
+    usage.append({"facebook": fb_sum, "whatsapp": wp_sum, "twitter": tw_sum,
+                  "instagram": inst_sum, "reddit": reddit_sum, "snapchat": sn_sum})
+    all_usages = {"usages": usage, "facebook": fb, "whatsapp": wp,
+                  "twitter": tw, "instagram": inst, "reddit": reddit, "snapchat": sn, "days": dat}
+    return JsonResponse(all_usages, safe=False)
+
+
+class SingleUserView(TemplateView):
+    template_name = "single.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        username = self.kwargs['username']
+        get_data = requests.get(
+            'https://devicemonitor-2e4ba-default-rtdb.firebaseio.com/users.json')
+        data = get_data.json()
+        user_data = data['{}'.format(username)]
+        context['user_data'] = user_data
+        context['daily_usage'] = user_data['usagedata']
+        return context

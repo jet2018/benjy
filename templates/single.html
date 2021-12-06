@@ -1,0 +1,191 @@
+{% extends "base.html" %} {% block styles %}
+<style>
+    .bg-awesome {
+        background: #007991;
+        /* fallback for old browsers */
+        background: -webkit-linear-gradient(to right, #78ffd6, #007991);
+        /* Chrome 10-25, Safari 5.1-6 */
+        background: linear-gradient(to right, #78ffd6, #007991);
+        /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    }
+</style> {% endblock styles %} {% block content %}
+<div class="p-5 bg-awesome" data-url="">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1 class="text-center text-light">{{ user_data.fullname|capfirst }}'s stats</h1>
+                <h3 class="text-center text-light">{{ user_data.username }}
+            </div>
+        </div>
+    </div>
+</div>
+<section class="row">
+    <div class="col-7">
+        <table class="table table-hover table-responsive table-striped">
+            <thead>
+                <td>
+                    #Day
+                </td>
+                <td>#Month</td>
+                <td>#Time(hrs)</td>
+                <td>
+                    Facebook
+                </td>
+                <td>
+                    Twitter
+                </td>
+                <td>
+                    Instagram
+                </td>
+                <td>
+                    Whatsapp
+                </td>
+                <td>Snapchat</td>
+                <td>Reddit</td>
+            </thead>
+            <tbody>
+                {% for dy in daily_usage %}
+                <tr>
+                    <td>{{dy.day}}</td>
+                    <td>{{dy.month}}</td>
+                    <td>{{dy.time}}</td>
+                    <td>{{dy.facebook}}</td>
+                    <td>{{dy.twitter}}</td>
+                    <td>{{dy.instagram}}</td>
+                    <td>{{dy.whatsapp}}</td>
+                    <td>{{dy.snapchat}}</td>
+                    <td>{{dy.reddit}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="col-5 mt-1">
+        <div class="card">
+            <div class="card-header bg-info text-light">
+                <h3 class="text-center">
+                    <i class="fa fa-pie-chart"></i> Pie chart visualisation
+                </h3>
+            </div>
+            <div class="card-body">
+                <div id="myPieChart" width="100%" height="100%"></div>
+            </div>
+
+        </div>
+        <div class="card">
+            <div class="card-header bg-info text-light">
+                <h3 class="text-center">
+                    <i class="fa fa-bar-chart"></i> Bar graph visualisation
+                </h3>
+            </div>
+            <div class="card-body">
+                <div id="myBarChart" width="70%" height="100%"></div>
+            </div>
+
+        </div>
+        <div class="card">
+            <div class="card-header bg-info text-light">
+                <h3 class="text-center">
+                    <i class="fas fa-info-circle"></i> Other statics
+                </h3>
+
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <td>Statistic</td>
+                        <td>Value</td>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Most appearance(day)</td>
+                            <td id="mode"></td>
+                        </tr>
+                        <tr>
+                            <td>Time usually spent facebooked</td>
+                            <td id="modefb"></td>
+                        </tr>
+                        <tr>
+                            <td>Time usually spent twittered</td>
+                            <td id="modetw"></td>
+                        </tr>
+                        <tr>
+                            <td>Time usually spent whatsapped</td>
+                            <td id="modewh"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</section>
+{% endblock content %}{% block scripts %}
+<script>
+    google.charts.load('current', {
+        packages: ['corechart']
+    });
+    google.charts.setOnLoadCallback(drawChart);
+
+    function mode(array) {
+        var frequency = []; // array of frequency.
+        var maxFreq = 0; // holds the max frequency.
+        var modes = [];
+
+        for (var i in array) {
+            frequency[array[i]] = (frequency[array[i]] || 0) + 1; // increment frequency.
+
+            if (frequency[array[i]] > maxFreq) { // is this frequency > max so far ?
+                maxFreq = frequency[array[i]]; // update max.
+            }
+        }
+
+        for (var k in frequency) {
+            if (frequency[k] == maxFreq) {
+                modes.push(k);
+            }
+        }
+
+        return modes;
+    }
+
+    function drawChart() {
+        // Define the chart to be drawn.
+        $.ajax({
+            url: window.location.pathname + 'json',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                    let res = response
+
+                    $('#mode').text(mode(res.days))
+                    $('#modewh').text(mode(res.whatsapp))
+                    $('#modetw').text(mode(res.twitter))
+                    $('#modefb').text(mode(res.facebook))
+                    let usages = res.usages[0]
+                    var data = new google.visualization.DataTable();
+                    data.addColumn('string', 'Topping');
+                    data.addColumn('number', 'Slices');
+                    data.addRows([
+                        ['Whatsapp', Number(usages.whatsapp)],
+                        ['Facebook', Number(usages.facebook)],
+                        ['Instagram', Number(usages.instagram)],
+                        ['Twitter', Number(usages.twitter)],
+                        ['Reddit', Number(usages.reddit)],
+                        ['Snapchat', Number(usages.snapchat)],
+                    ]);
+                    var options = {
+                        title: 'General Application usages',
+                    };
+                    // Instantiate and draw the chart.
+                    var chart = new google.visualization.PieChart(document.getElementById('myPieChart'));
+                    var bar = new google.visualization.BarChart(document.getElementById('myBarChart'));
+                    chart.draw(data, options);
+                    bar.draw(data, options);
+
+
+                } // end success
+        }); // end ajax
+    } // end drawChart
+</script> {% endblock scripts %}
