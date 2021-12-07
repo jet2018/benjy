@@ -1,8 +1,6 @@
 from django.contrib.auth.models import User, auth
 from django.shortcuts import render
-from api.serializers import UsageDataSerializer
 from rest_framework.decorators import api_view
-from rest_framework import generics
 from django.http.response import JsonResponse
 import requests
 from django.views.generic import TemplateView
@@ -18,18 +16,23 @@ class HomePageView(LoginRequiredMixin, TemplateView):
     template_name = 'home.html'
     redirect_field_name = 'redirect_to'
 
+    # add extra data to show in the templates
     def get_context_data(self, **kwargs):
+        # extending the super data being carried
         context = super().get_context_data(**kwargs)
+        # perform a fetch request to get data from firebase
         get_data = requests.get(
             'https://devicemonitor-2e4ba-default-rtdb.firebaseio.com/users.json')
+        # convert the data to json format
         data = get_data.json()
+        # add the data to the context
         eachUser = []
-        fb = []
-        wp = []
-        tw = []
-        sn = []
-        inst = []
-        reddit = []
+        fb = []  # facebook data
+        wp = []  # whatsapp data
+        tw = []  # twitter data
+        sn = []  # snapchat data
+        inst = []  # instagram data
+        reddit = []  # reddit data
         for a in data:
             all_data = data[a]
 
@@ -120,6 +123,7 @@ def data_to_json_by_user(request, username):
     get_data = requests.get(
         'https://devicemonitor-2e4ba-default-rtdb.firebaseio.com/users.json')
     data = get_data.json()
+    # filter out the required username
     user_data = data['{}'.format(username)]
     fb = []
     wp = []
